@@ -97,41 +97,82 @@ function loadVideoForSlide(slideElement) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  // --- Bulma Carousel Initialization and Event Handling ---
-  // Make sure you target the correct carousel container for your videos
-  // Use the ID or a specific class if you have multiple carousels
-  const videoCarousels = bulmaCarousel.attach('#diffusion-trajectory-carousel', { // <-- Make sure this ID matches your video carousel container
-    slidesToScroll: 1,
-    slidesToShow: 1,
-    infinite: true,
-    // Add other options as needed
-  });
-
-  videoCarousels.forEach(carousel => {
-    // Load video for the initial active slide
-    const initialSlideIndex = carousel.state.index;
-    const initialSlideElement = carousel.slides[initialSlideIndex];
-     if (initialSlideElement) {
-        loadVideoForSlide(initialSlideElement);
-     }
-
-
-    // Listen for slide changes using the 'after' event
-    carousel.on('carousel:slide:after', (event) => {
-      // event.detail contains info like the Carousel instance, new index, and the slide element
-      const slideElement = event.detail.element; // Get the actual slide DOM element
-       if (slideElement) {
-          loadVideoForSlide(slideElement);
-       }
+  // Add warning overlay for diffusion videos section
+  const diffusionSection = document.querySelector('#diffusion-videos-section');
+  if (diffusionSection) {
+    // Get the carousel container
+    const carouselContainer = diffusionSection.querySelector('.carousel.results-carousel');
+    
+    if (carouselContainer) {
+      // Initially hide the carousel
+      carouselContainer.style.display = 'none';
+      
+      // Create warning button
+      const warningBtn = document.createElement('div');
+      warningBtn.className = 'warning-button has-text-centered';
+      warningBtn.innerHTML = `
+        <div class="notification is-warning">
+          <p><strong>Warning:</strong> The following videos contain rapid flashing content which may not be suitable for photosensitive viewers.</p>
+          <button class="button is-danger mt-3">Show Videos Anyway</button>
+        </div>
+      `;
+      
+      // Insert the warning button before the carousel
+      carouselContainer.parentNode.insertBefore(warningBtn, carouselContainer);
+      
+      // Add click event to the warning button
+      const showButton = warningBtn.querySelector('button');
+      showButton.addEventListener('click', function() {
+        // Show the carousel
+        carouselContainer.style.display = 'block';
+        // Remove the warning button
+        warningBtn.remove();
+        
+        // Initialize the carousel if it hasn't been initialized yet
+        if (!carouselContainer.classList.contains('carousel-initialized')) {
+          initDiffusionCarousel();
+          carouselContainer.classList.add('carousel-initialized');
+        }
+      });
+    }
+  }
+  
+  function initDiffusionCarousel() {
+    // --- Bulma Carousel Initialization and Event Handling ---
+    const videoCarousels = bulmaCarousel.attach('#diffusion-videos-section .carousel', {
+      slidesToScroll: 1,
+      slidesToShow: 1,
+      infinite: true,
+      // Add other options as needed
     });
-  });
-  // --- End Bulma Carousel Specific Code ---
 
-  // Keep the original spinner hiding logic for videos OUTSIDE carousels if needed
-  // Or integrate spinner logic fully into loadVideoForSlide as shown above
-  /*
-  document.querySelectorAll('.video-wrapper:not(.carousel-item .video-wrapper)').forEach(function(wrapper) {
-     // ... original spinner logic ...
-  });
-  */
+    videoCarousels.forEach(carousel => {
+      // Load video for the initial active slide
+      const initialSlideIndex = carousel.state.index;
+      const initialSlideElement = carousel.slides[initialSlideIndex];
+      if (initialSlideElement) {
+        loadVideoForSlide(initialSlideElement);
+      }
+
+      // Listen for slide changes using the 'after' event
+      carousel.on('carousel:slide:after', (event) => {
+        // event.detail contains info like the Carousel instance, new index, and the slide element
+        const slideElement = event.detail.element; // Get the actual slide DOM element
+        if (slideElement) {
+          loadVideoForSlide(slideElement);
+        }
+      });
+    });
+  }
+  
+  // Initialize non-diffusion carousels immediately
+  const otherCarousels = document.querySelectorAll('.carousel:not(#diffusion-videos-section .carousel)');
+  if (otherCarousels.length) {
+    bulmaCarousel.attach(otherCarousels, {
+      slidesToScroll: 1,
+      slidesToShow: 1,
+      infinite: true,
+      // Add other options as needed
+    });
+  }
 });

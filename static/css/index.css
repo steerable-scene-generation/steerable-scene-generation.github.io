@@ -346,3 +346,13 @@ body {
   display: block;
   max-width: 100%;
 }
+
+.warning-button {
+  margin: 2rem 0;
+}
+
+.warning-button .notification {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
