@@ -207,3 +207,45 @@ document.addEventListener('DOMContentLoaded', function() {
   `;
   document.head.appendChild(style);
 });
+
+// Add function to enable video restart on click
+document.addEventListener("DOMContentLoaded", function() {
+  // Add clickable restart functionality to all videos
+  document.querySelectorAll('.video-wrapper').forEach(function(wrapper) {
+    const video = wrapper.querySelector('video');
+    if (video) {
+      // Add controls to all videos
+      video.setAttribute('controls', '');
+      
+      // Add a play/restart overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'video-restart-overlay';
+      overlay.innerHTML = '<i class="fas fa-redo"></i>';
+      overlay.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); cursor: pointer; display: none; justify-content: center; align-items: center; z-index: 5;';
+      wrapper.appendChild(overlay);
+      
+      // Show overlay when video ends
+      video.addEventListener('ended', function() {
+        overlay.style.display = 'flex';
+      });
+      
+      // Restart video when overlay is clicked
+      overlay.addEventListener('click', function(e) {
+        e.stopPropagation();
+        video.currentTime = 0;
+        video.play();
+        overlay.style.display = 'none';
+      });
+      
+      // Also allow clicking directly on video to restart
+      video.addEventListener('click', function(e) {
+        if (video.ended) {
+          e.stopPropagation();
+          video.currentTime = 0;
+          video.play();
+          if (overlay) overlay.style.display = 'none';
+        }
+      });
+    }
+  });
+});
