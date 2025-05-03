@@ -97,13 +97,16 @@ function loadVideoForSlide(slideElement) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  console.log("DOM loaded, looking for diffusion section");
   // Add warning overlay for diffusion videos section
   const diffusionSection = document.querySelector('#diffusion-videos-section');
   if (diffusionSection) {
+    console.log("Found diffusion section", diffusionSection);
     // Get the carousel container
     const carouselContainer = diffusionSection.querySelector('.carousel.results-carousel');
     
     if (carouselContainer) {
+      console.log("Found carousel container", carouselContainer);
       // Initially hide the carousel
       carouselContainer.style.display = 'none';
       
@@ -119,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Insert the warning button before the carousel
       carouselContainer.parentNode.insertBefore(warningBtn, carouselContainer);
+      console.log("Added warning button");
       
       // Add click event to the warning button
       const showButton = warningBtn.querySelector('button');
@@ -128,51 +132,52 @@ document.addEventListener('DOMContentLoaded', function() {
         // Remove the warning button
         warningBtn.remove();
         
-        // Initialize the carousel if it hasn't been initialized yet
-        if (!carouselContainer.classList.contains('carousel-initialized')) {
-          initDiffusionCarousel();
-          carouselContainer.classList.add('carousel-initialized');
-        }
+        // SIMPLE APPROACH: Directly load all videos
+        const allVideos = carouselContainer.querySelectorAll('video.lazy-video');
+        allVideos.forEach(function(video) {
+          if (video.dataset.src && !video.hasAttribute('src') && !video.querySelector('source')) {
+            const source = document.createElement('source');
+            source.src = video.dataset.src;
+            source.type = 'video/mp4';
+            video.appendChild(source);
+            video.load();
+          }
+        });
+        
+        // Force Slick to recalculate positions after showing the carousel
+        setTimeout(function() {
+          $(carouselContainer).slick('setPosition');
+          
+          // FORCE: Go to first slide and back to reset position
+          $(carouselContainer).slick('slickGoTo', 1, true);
+          setTimeout(function() {
+            $(carouselContainer).slick('slickGoTo', 0, true);
+          }, 50);
+        }, 100);
+      });
+    } else {
+      console.log("Carousel container not found inside diffusion section");
+    }
+  } else {
+    console.log("Diffusion section not found");
+  }
+  
+  // Hide spinner when video is ready
+  document.querySelectorAll('.video-wrapper').forEach(function(wrapper) {
+    var video = wrapper.querySelector('video');
+    var spinner = wrapper.querySelector('.video-spinner');
+    if (video && spinner) {
+      // Hide spinner when video can play
+      video.addEventListener('canplay', function() {
+        spinner.style.display = 'none';
+      });
+      // Optionally, show spinner again if video is waiting/buffering
+      video.addEventListener('waiting', function() {
+        spinner.style.display = '';
+      });
+      video.addEventListener('playing', function() {
+        spinner.style.display = 'none';
       });
     }
-  }
-  
-  function initDiffusionCarousel() {
-    // --- Bulma Carousel Initialization and Event Handling ---
-    const videoCarousels = bulmaCarousel.attach('#diffusion-videos-section .carousel', {
-      slidesToScroll: 1,
-      slidesToShow: 1,
-      infinite: true,
-      // Add other options as needed
-    });
-
-    videoCarousels.forEach(carousel => {
-      // Load video for the initial active slide
-      const initialSlideIndex = carousel.state.index;
-      const initialSlideElement = carousel.slides[initialSlideIndex];
-      if (initialSlideElement) {
-        loadVideoForSlide(initialSlideElement);
-      }
-
-      // Listen for slide changes using the 'after' event
-      carousel.on('carousel:slide:after', (event) => {
-        // event.detail contains info like the Carousel instance, new index, and the slide element
-        const slideElement = event.detail.element; // Get the actual slide DOM element
-        if (slideElement) {
-          loadVideoForSlide(slideElement);
-        }
-      });
-    });
-  }
-  
-  // Initialize non-diffusion carousels immediately
-  const otherCarousels = document.querySelectorAll('.carousel:not(#diffusion-videos-section .carousel)');
-  if (otherCarousels.length) {
-    bulmaCarousel.attach(otherCarousels, {
-      slidesToScroll: 1,
-      slidesToShow: 1,
-      infinite: true,
-      // Add other options as needed
-    });
-  }
+  });
 });
