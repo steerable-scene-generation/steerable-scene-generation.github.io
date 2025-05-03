@@ -181,3 +181,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// Add this function after DOM loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Add CSS for consistent carousel sizing
+  const style = document.createElement('style');
+  style.textContent = `
+    .results-carousel .results-item {
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .results-carousel .slick-prev, 
+    .results-carousel .slick-next {
+      z-index: 10;
+    }
+    .results-carousel .slick-dots {
+      position: relative;
+      bottom: 0;
+      margin-top: 10px;
+    }
+    .video-wrapper {
+      margin: 0 auto;
+      max-width: 90%;
+    }
+  `;
+  document.head.appendChild(style);
+});
